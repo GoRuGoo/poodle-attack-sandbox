@@ -8,5 +8,4 @@ POODLE stands for "Padding Oracle On Downgraded Legacy Encryption" and is a vuln
 ## Warning
 If you use this code to carry out an attack, you may be arrested by the judicial authorities of your country.
 
-This test code is for learning purposes only.
-
+Use for study purposes only.

@@ -94,14 +94,17 @@ def cbc_decrypt(cbc_crypted_text, key):
     return unpad(plaintext, BLOCK_SIZE)
 
 
-# テスト用
 plaintext = b"Hello, World!"
 
 key = os.urandom(32)
 
 ciphertext = cbc_encrypt(plaintext, key)
-print(f"暗号文: {ciphertext}")
-print(ciphertext.hex())
 
+print("------------------------------------------")
+print(f"暗号文: {plaintext.decode('utf-8')}")
+print("HEX:", ' '.join(f"{byte:02x}" for byte in ciphertext))
+
+print("------------------------------------------")
 decrypted_text = cbc_decrypt(ciphertext, key)
 print(f"復号文: {decrypted_text.decode('utf-8')}")
+print("------------------------------------------")

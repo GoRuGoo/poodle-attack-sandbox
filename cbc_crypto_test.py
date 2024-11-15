@@ -96,7 +96,7 @@ def cbc_decrypt(cbc_crypted_text, key):
 
 plaintext = b"Hello, World!"
 
-key = os.urandom(32)
+key = os.urandom(16)
 
 ciphertext = cbc_encrypt(plaintext, key)
 

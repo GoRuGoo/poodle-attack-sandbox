@@ -6,7 +6,7 @@ pkt = None
 def callback(packet):
     global pkt
     pkt = IP(packet.get_payload())
-    print(pkt)
+    pkt.show()
     packet.accept()
 
 nfqueue = NetfilterQueue()

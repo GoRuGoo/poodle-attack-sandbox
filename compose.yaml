@@ -1,0 +1,31 @@
+version: "3"
+services:
+  client:
+    container_name: client
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    tty: true
+    networks:
+      - exploit-network
+  target-nginx-server:
+    container_name: target-nginx-server
+    tty: true
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    volumes:
+      - ./nginx/conf/nginx.conf:/tmp/nginx.conf
+    extra_hosts:
+      - testdomain.com:127.0.0.1
+    networks:
+      - exploit-network
+  mitm-server:
+    container_name: mitm-server
+    tty: true
+    image: ubuntu:22.04
+    networks:
+      - exploit-network
+networks:
+  exploit-network:
+    driver: bridge

@@ -17,3 +17,12 @@ RUN cd /root/ && \
     cd openssl-1.0.1i && \
     ./config shared zlib --prefix=/usr/local/ssl && \
     make && make install
+
+
+ENV LD_LIBRARY_PATH=/usr/local/ssl/lib:$LD_LIBRARY_PATH
+RUN cd /root/ && \
+    wget https://curl.se/download/curl-7.32.0.tar.gz && \
+    tar -xzvf curl-7.32.0.tar.gz && \
+    cd curl-7.32.0 && \
+    ./configure --with-ssl=/usr/local/ssl --prefix=/usr/local/curl-test && \
+    make && make install

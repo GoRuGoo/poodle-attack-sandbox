@@ -1,0 +1,38 @@
+version: "3"
+services:
+  client:
+    container_name: client
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    tty: true
+    extra_hosts:
+      - testdomain.com:192.168.0.11
+    networks:
+      exploit-network:
+        ipv4_address: 192.168.0.10
+  target-nginx-server:
+    container_name: target-nginx-server
+    tty: true
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    extra_hosts:
+      - testdomain.com:127.0.0.1
+    networks:
+      exploit-network:
+        ipv4_address: 192.168.0.11
+  mitm-server:
+    container_name: mitm-server
+    tty: true
+    image: ubuntu:22.04
+    networks:
+      exploit-network:
+        ipv4_address: 192.168.0.12
+networks:
+  exploit-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/24

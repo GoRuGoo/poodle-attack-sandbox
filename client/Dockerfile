@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     zlib1g \
     zlib1g-dev \
     libssl-dev \
+    vim \
     && rm -rf /var/lib/apt/lists/*
 
 RUN cd /root/ && \
@@ -26,3 +27,4 @@ RUN cd /root/ && \
     cd curl-7.32.0 && \
     ./configure --with-ssl=/usr/local/ssl --prefix=/usr/local/curl-test && \
     make && make install
+ENV PATH="/usr/local/curl-test/bin:${PATH}"

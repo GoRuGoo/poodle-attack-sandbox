@@ -1,10 +1,10 @@
-version: "3"
 services:
   client:
     container_name: client
     build:
-      context: ./client
+      context: ./build/client
       dockerfile: Dockerfile
+    privileged: true
     tty: true
     extra_hosts:
       - testdomain.com:192.168.0.11
@@ -15,8 +15,9 @@ services:
     container_name: target-nginx-server
     tty: true
     build:
-      context: ./nginx
+      context: ./build/nginx
       dockerfile: Dockerfile
+    privileged: true
     extra_hosts:
       - testdomain.com:127.0.0.1
     networks:
@@ -25,7 +26,12 @@ services:
   mitm-server:
     container_name: mitm-server
     tty: true
-    image: ubuntu:22.04
+    build:
+      context: ./build/mitm
+      dockerfile: Dockerfile
+    privileged: true
+    volumes:
+      - ./mitm:/root/mitm
     networks:
       exploit-network:
         ipv4_address: 192.168.0.12

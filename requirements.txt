@@ -1,0 +1,11 @@
+backports.shutil-get-terminal-size==1.0.0
+colorama==0.4.6
+NetfilterQueue==1.1.0
+Pygments==2.17.2
+PyYAML==6.0.1
+reprint==0.6.0
+scapy==2.6.1
+scapy-http==1.8.2
+setuptools==68.1.2
+six==1.17.0
+wheel==0.42.0

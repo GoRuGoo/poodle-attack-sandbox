@@ -20,6 +20,8 @@ services:
     privileged: true
     extra_hosts:
       - testdomain.com:127.0.0.1
+    volumes:
+      - ./target-nginx:/root/target-nginx
     networks:
       exploit-network:
         ipv4_address: 192.168.0.11

@@ -1,20 +1,15 @@
 from netfilterqueue import NetfilterQueue
 from scapy.all import IP
 
-pkt = None
 
-
-def callback(packet):
-    global pkt
+def proxy_callback(packet):
     pkt = IP(packet.get_payload())
-    pkt.show()
     packet.accept()
 
 
-nfqueue = NetfilterQueue()
-nfqueue.bind(0, callback)
-
 try:
+    nfqueue = NetfilterQueue()
+    nfqueue.bind(0, proxy_callback)
     nfqueue.run()
 except KeyboardInterrupt:
     pass

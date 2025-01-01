@@ -19,7 +19,7 @@ docker/docker compose が必要なのでインストールしてください。
 1. コンテナ起動
 
 ```docker exec -it mitm-server bash
-docker compose up
+docker compose up --build
 ```
 
 2. 中間者サーバーのスクリプト起動

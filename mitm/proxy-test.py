@@ -4,6 +4,7 @@ from scapy.all import IP
 
 def proxy_callback(packet):
     pkt = IP(packet.get_payload())
+    pkt.show()
     packet.accept()
 
 

@@ -18,6 +18,11 @@ RUN apt-get update && apt-get install -y \
     dsniff \
     python3-pip \
     libnetfilter-queue-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install scapy NetfilterQueue
+
+RUN curl -sSL https://install.python-poetry.org | python3
+
+ENV PATH="/root/.local/bin:$PATH"

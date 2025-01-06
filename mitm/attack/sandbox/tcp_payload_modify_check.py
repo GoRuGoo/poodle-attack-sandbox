@@ -40,7 +40,7 @@ def attack_callback(packet):
        # print("-------------------------------")
         if len(payload) > 0:
             # ペイロードの下位1バイトを変更
-            modified_payload = bytes(payload)[:-1] + bytes(0x33)  # 下位1バイトを変更
+            modified_payload = bytes(payload)[:-1] + b'\x33' # 下位1バイトを変更
 
             print(' '.join(f'{byte:02x}' for byte in bytes(payload)))
             print("-----------------------raw-----------------------")

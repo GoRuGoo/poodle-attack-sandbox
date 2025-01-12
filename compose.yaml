@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
     privileged: true
     tty: true
+    volumes:
+      - ./client:/root/client
     extra_hosts:
       - testdomain.com:192.168.0.11
     networks:

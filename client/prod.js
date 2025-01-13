@@ -32,10 +32,11 @@ function sendRequest(method, urlStr, data, callback, errorcallback, timeout) {
     const req = https.request(defaultOptions, function (res) {
         var responseData = '';
         res.on('data', function (chunk) {
-            callback && callback(chunk);
+            responseData += chunk; // Append each chunk to responseData
         });
+
         res.on('end', function () {
-            if (callback) callback(responseData);
+            callback && callback(responseData.toString());
         });
     });
 
@@ -109,7 +110,7 @@ var blockSizeString = ""
 //sendBlockSizeRequest();
 
 sendRequest('GET', 'https://testdomain.com', null, function (response) {
-    console.log(response.toString());
+    console.log(response)
 }, function (res) {
     console.log("error");
 }, 30000);

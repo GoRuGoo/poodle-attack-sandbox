@@ -2,22 +2,22 @@ const https = require('https');
 const url = require('url');
 
 function sendRequest(method, urlStr, data, callback, errorcallback, timeout) {
-    const parsedUrl = url.parse(urlStr);
+    var parsedUrl = url.parse(urlStr);
 
-    const sslOptions = {
+    var sslOptions = {
         port: 443,
         ciphers: 'DES-CBC3-SHA',
         secureProtocol: 'SSLv3_method',
         rejectUnauthorized: false
     };
 
-    const defaultOptions = {
+    var defaultOptions = {
         hostname: parsedUrl.hostname,
         path: parsedUrl.path,
-        method: method || 'GET',
-    }
+        method: method || 'GET'
+    };
 
-    //もしもSSLv3への通信であるのならば、SSLv3用のオプションがないと鍵交換等でエラーが出てしまうため指定しておく
+    // 特定のホスト用のSSLv3設定
     if (parsedUrl.hostname === "testdomain.com") {
         for (var key in sslOptions) {
             if (sslOptions.hasOwnProperty(key)) {
@@ -26,23 +26,29 @@ function sendRequest(method, urlStr, data, callback, errorcallback, timeout) {
         }
     }
 
-
-    const req = https.request(defaultOptions, function (res) {
+    var req = https.request(defaultOptions, function (res) {
         var responseData = '';
+
         res.on('data', function (chunk) {
-            responseData += chunk; // Append each chunk to responseData
+            responseData += chunk;
         });
 
         res.on('end', function () {
-            callback && callback(responseData.toString());
+            console.log("Response:", responseData);
+            if (callback) callback(responseData.toString());
         });
     });
 
+    // エラーハンドラ
     req.on('error', function (err) {
-        errorcallback && errorcallback(err.code, err.message);
+        console.error("Error occurred:", err.message);
+        if (errorcallback) errorcallback(err.code, err.message);
+        req.abort(); // エラーが発生した場合、コネクションを即座に切る
     });
 
+    // タイムアウト処理
     req.setTimeout(timeout || 5000, function () {
+        console.warn('Request timeout. Aborting connection.');
         req.abort();
         if (errorcallback) errorcallback('ETIMEDOUT', 'Request timed out');
     });
@@ -54,32 +60,37 @@ function sendRequest(method, urlStr, data, callback, errorcallback, timeout) {
     req.end();
 }
 
-// First request
-sendRequest(
-    'POST',
-    "https://testdomain.com",
-    null,
-    function (response) {
-        console.log("success first request");
+// 256回リクエストを送信
+function sendMultipleRequests() {
+    var requestCount = 0;
 
-        // After the first request is complete, wait 3 seconds before sending the second request
-        setTimeout(function () {
+    function sendNextRequest() {
+        if (requestCount < 256) {
             sendRequest(
                 'POST',
                 "https://testdomain.com",
                 null,
                 function (response) {
-                    console.log("success second request")
+                    console.log("-----------------------------------------------------OK------------------------------------------------")
+                    console.log("Request #" + (requestCount + 1) + " succeeded. Response: " + response);
+                    console.log("-----------------------------------------------------OK------------------------------------------------")
+                    requestCount++;
+                    sendNextRequest(); // 次のリクエストを送信
                 },
                 function (errorCode, errorMessage) {
-                    console.error("Error in second request:", errorCode, errorMessage);
+                    console.error("Request #" + (requestCount + 1) + " failed. Error: " + errorCode + ", Message: " + errorMessage);
+                    requestCount++;
+                    sendNextRequest(); // エラーが発生しても次のリクエストに進む
                 },
                 5000
             );
-        }, 3000);
-    },
-    function (errorCode, errorMessage) {
-        console.error("Error in first request:", errorCode, errorMessage);
-    },
-    5000
-);
+        } else {
+            console.log("All requests have been processed.");
+        }
+    }
+
+    sendNextRequest(); // リクエストの送信を開始
+}
+
+// 最初に256回のリクエストを開始
+sendMultipleRequests();

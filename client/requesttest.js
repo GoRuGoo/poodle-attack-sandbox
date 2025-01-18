@@ -1,5 +1,6 @@
 const https = require('https');
 const url = require('url');
+var cookies = '';
 
 function sendRequest(method, urlStr, data, callback, errorcallback, timeout) {
     var parsedUrl = url.parse(urlStr);
@@ -14,8 +15,14 @@ function sendRequest(method, urlStr, data, callback, errorcallback, timeout) {
     var defaultOptions = {
         hostname: parsedUrl.hostname,
         path: parsedUrl.path,
-        method: method || 'GET'
+        method: method || 'GET',
+        headers: {}
     };
+
+    // もしcookiesが設定されていたら、リクエストヘッダに追加
+    if (cookies) {
+        defaultOptions.headers['Cookie'] = cookies;
+    }
 
     // 特定のホスト用のSSLv3設定
     if (parsedUrl.hostname === "testdomain.com") {
@@ -28,6 +35,14 @@ function sendRequest(method, urlStr, data, callback, errorcallback, timeout) {
 
     var req = https.request(defaultOptions, function (res) {
         var responseData = '';
+
+        // レスポンスのSet-Cookieを取得し、cookiesに保存
+        if (res.headers['set-cookie']) {
+            res.headers['set-cookie'].forEach(function (cookie) {
+                cookies = cookie;
+            });
+            cookies = cookies.trim();  // 最後のセミコロンとスペースを削除
+        }
 
         res.on('data', function (chunk) {
             responseData += chunk;

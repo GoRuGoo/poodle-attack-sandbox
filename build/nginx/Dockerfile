@@ -24,8 +24,8 @@ ENV PATH="/usr/local/ssl/bin:${PATH}"
 
 ENV CFLAGS="-Wno-implicit-fallthrough"
 RUN cd /root/ && \
-    wget https://nginx.org/download/nginx-1.0.15.tar.gz && \
-    tar -xzvf nginx-1.0.15.tar.gz && cd nginx-1.0.15 && \
+    wget https://nginx.org/download/nginx-1.4.7.tar.gz && \
+    tar -xzvf nginx-1.4.7.tar.gz && cd nginx-1.4.7 && \
     ./configure --with-http_ssl_module --with-openssl=../openssl-1.0.1i && \
     make  && make install
 
@@ -36,3 +36,13 @@ COPY ../conf/nginx.conf /usr/local/nginx/conf/nginx.conf
 RUN chmod +x /usr/local/nginx/sbin/nginx
 
 CMD ["sh","-c","python3 /root/target-nginx/python-test-server.py & /usr/local/nginx/sbin/nginx -g 'daemon off;'"]
+
+#FROM gorugoo/poodle-test-image
+
+
+#ENV PATH="/usr/local/curl-test/bin:${PATH}"
+#ENV PATH="/usr/local/nginx/sbin/nginx:${PATH}"
+#COPY ../conf/nginx.conf /usr/local/nginx/conf/nginx.conf
+#
+#RUN chmod +x /usr/local/nginx/sbin/nginx
+#CMD ["/usr/local/nginx/sbin/nginx", "-g", "daemon off;"]

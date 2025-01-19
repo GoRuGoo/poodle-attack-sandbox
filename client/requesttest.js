@@ -83,7 +83,7 @@ function sendMultipleRequests() {
         if (requestCount < 256) {
             sendRequest(
                 'POST',
-                "https://testdomain.com/aaaaaaaa",
+                "https://testdomain.com",
                 null,
                 function (response) {
                     console.log("-----------------------------------------------------OK------------------------------------------------")

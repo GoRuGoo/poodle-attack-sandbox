@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
     privileged: true
     tty: true
+    volumes:
+      - ./client:/root/client
     extra_hosts:
       - testdomain.com:192.168.0.11
     networks:
@@ -22,6 +24,7 @@ services:
       - testdomain.com:127.0.0.1
     volumes:
       - ./target-nginx:/root/target-nginx
+      - ./build/nginx/ssl:/etc/nginx/ssl
     networks:
       exploit-network:
         ipv4_address: 192.168.0.11

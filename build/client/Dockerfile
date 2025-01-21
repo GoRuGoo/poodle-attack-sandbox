@@ -28,3 +28,9 @@ RUN cd /root/ && \
     ./configure --with-ssl=/usr/local/ssl --prefix=/usr/local/curl-test && \
     make && make install
 ENV PATH="/usr/local/curl-test/bin:${PATH}"
+
+
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash && \
+    export NVM_DIR="$HOME/.nvm" && \
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && \
+    nvm install 0

@@ -3,13 +3,14 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 class HelloWorldHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        # HTTPステータスコード200（成功）を送信
+        self.do_POST()
+
+    def do_POST(self):
         self.send_response(200)
-        # レスポンスヘッダーを設定
-        self.send_header("Content-type", "text/plain")
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Set-Cookie", "sessionid=poodletest;")
         self.end_headers()
-        # レスポンスボディを送信
-        self.wfile.write(b"Hello, World!\n")
+        self.wfile.write(b"<h1>POODLE</h1>")
 
 
 # サーバーのアドレスとポートを設定
